@@ -30,19 +30,23 @@
                             </a></p>
                         <p>Clicks: <%= url.clicks %>
                         </p>
+                        <% if (url.note) { %>
+                            <p>Note: <%= url.note %>
+                            </p>
+                        <% } %>
                     </li>
                     <% }) %>
             </ul>
-            <% } else if (searchQuery) { %>
+            <% } else { %>
                 <p class="no-results">No search results found.</p>
                 <% } %>
     </div>
 
     <div class="url-list">
         <h2>All URLs:</h2>
-        <% if (shortUrls.length> 0) { %>
+        <% if (allUrls.length> 0) { %>
             <ul>
-                <% shortUrls.forEach((url)=> { %>
+                <% allUrls.forEach((url)=> { %>
                     <li>
                         <p>Short URL: <a href="/<%= url.short %>">
                                 <%= url.short %>
@@ -52,6 +56,10 @@
                             </a></p>
                         <p>Clicks: <%= url.clicks %>
                         </p>
+                        <% if (url.note) { %>
+                            <p>Note: <%= url.note %>
+                            </p>
+                        <% } %>
                     </li>
                     <% }) %>
             </ul>
@@ -65,14 +73,15 @@
         <form action="/shortUrls" method="POST">
             <input type="url" name="fullUrl" placeholder="Enter a URL" required>
             <input type="text" name="customUrl" placeholder="Custom short URL (optional)">
+            <input type="text" name="note" placeholder="Note (optional)">
             <button type="submit">Shorten</button>
         </form>
         <% if (typeof errorMessage !=='undefined' && errorMessage) { %>
             <p class="error">
                 <%= errorMessage %>
             </p>
-            <% } %>
-    </div>
+        <% } %>
+    </div>    
 </body>
 
 </html>
