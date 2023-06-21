@@ -19,7 +19,7 @@ app.get("/", async (req, res) => {
     const autocompleteResultsFull = await ShortUrl.aggregate([
       {
         $search: {
-          index: "note",
+          index: "urls",
           autocomplete: {
             query: searchQuery || "*",
             path: "full"
@@ -31,7 +31,7 @@ app.get("/", async (req, res) => {
     const autocompleteResultsNote = await ShortUrl.aggregate([
       {
         $search: {
-          index: "note",
+          index: "urls",
           autocomplete: {
             query: searchQuery || "*",
             path: "note"
@@ -56,7 +56,7 @@ app.get("/autocomplete", async (req, res) => {
     const autocompleteResultsFull = await ShortUrl.aggregate([
       {
         $search: {
-          index: "note",
+          index: "urls",
           autocomplete: {
             query: q || "*",
             path: "full"
@@ -78,7 +78,7 @@ app.get("/autocomplete", async (req, res) => {
     const autocompleteResultsNote = await ShortUrl.aggregate([
       {
         $search: {
-          index: "note",
+          index: "urls",
           autocomplete: {
             query: q || "*",
             path: "note"
