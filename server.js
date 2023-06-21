@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const ShortUrl = require("./models/shortUrl");
 const app = express();
 require("dotenv").config();
+const shortId = require("shortid");
 
 mongoose.connect(process.env.ATLAS_URI, {
   useNewUrlParser: true,
@@ -12,24 +13,95 @@ app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: false }));
 
 app.get("/", async (req, res) => {
-  const searchQuery = req.query.q || "";
+  const searchQuery = req.query.q || "*";
 
   try {
-    const shortUrls = await ShortUrl.aggregate([
-        {
-          $search: {
-            index: 'note',
-            text: {
-              query: searchQuery,
-              path: ['full', 'note']
-            }
-          }
-        }
-      ]);  
+    const autocompleteResultsFull = await ShortUrl.aggregate([
+      {
+        $search: {
+          index: "note",
+          autocomplete: {
+            query: searchQuery || "*",
+            path: "full"
+          },
+        },
+      },
+    ]);
+
+    const autocompleteResultsNote = await ShortUrl.aggregate([
+      {
+        $search: {
+          index: "note",
+          autocomplete: {
+            query: searchQuery || "*",
+            path: "note"
+          },
+        },
+      },
+    ]);
+
+    const shortUrls = [...autocompleteResultsFull, ...autocompleteResultsNote];
     const allUrls = await ShortUrl.find();
     res.render("index", { shortUrls, allUrls, searchQuery });
   } catch (error) {
-    res.status(500).send("Failed to fetch short URLs!");
+    console.error("Error in / route:", error);
+    res.status(500).send("An error occurred while fetching data.");
+  }
+});
+
+
+app.get("/autocomplete", async (req, res) => {
+  const { q } = req.query;
+  try {
+    const autocompleteResultsFull = await ShortUrl.aggregate([
+      {
+        $search: {
+          index: "note",
+          autocomplete: {
+            query: q || "*",
+            path: "full"
+          },
+        },
+      },
+      {
+        $limit: 5, // Adjust the number of autocomplete results as needed
+      },
+      {
+        $project: {
+          _id: 0,
+          short: 1,
+          note: 1,
+        },
+      },
+    ]);
+
+    const autocompleteResultsNote = await ShortUrl.aggregate([
+      {
+        $search: {
+          index: "note",
+          autocomplete: {
+            query: q || "*",
+            path: "note"
+          },
+        },
+      },
+      {
+        $limit: 5, // Adjust the number of autocomplete results as needed
+      },
+      {
+        $project: {
+          _id: 0,
+          short: 1,
+          note: 1,
+        },
+      },
+    ]);
+
+    const autocompleteResults = [...autocompleteResultsFull, ...autocompleteResultsNote];
+    res.json(autocompleteResults);
+  } catch (error) {
+    console.error("Error in /autocomplete route:", error);
+    res.status(500).send("An error occurred while fetching autocomplete results.");
   }
 });
 
